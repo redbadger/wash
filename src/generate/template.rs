@@ -16,7 +16,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use walkdir::{WalkDir};
+use walkdir::WalkDir;
 use weld_codegen::render::Renderer;
 
 /// Matcher determines disposition of file: whether it should be copied, whether translated with template engine, and whether it is renamed
@@ -63,13 +63,18 @@ impl Matcher {
 
     /// determine renamed destination path
     fn rename_path(&self, rel_path: &Path) -> Option<&str> {
-        let ren = self.rename
+        let ren = self
+            .rename
             .iter()
             .find(|rc| rc.from == rel_path)
             .map(|rc| rc.to.as_str());
         match ren {
-            None => {println!("DBG: ren: {}: no", &rel_path.display());},
-            Some(p) => {println!("DBG: ren: {}: {}", &rel_path.display(), p);},
+            None => {
+                println!("DBG: ren: {}: no", &rel_path.display());
+            }
+            Some(p) => {
+                println!("DBG: ren: {}: {}", &rel_path.display(), p);
+            }
         }
         ren
     }
