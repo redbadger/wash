@@ -23,7 +23,7 @@ bytes = "1.0"
 cargo = "0.56"
 cargo_atelier = "0.2"
 console = "0.14"
-derive_more = {version = "0.99.16", default_features = false, features = ["display", "from", "into"]}
+derive_more = {version = "0.99.16", default_features = false, features = ["display"]}
 dialoguer = "0.8"
 dirs = "4.0"
 env_logger = "0.9"

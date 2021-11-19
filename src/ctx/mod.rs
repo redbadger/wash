@@ -2,6 +2,7 @@ use crate::generate::{
     interactive::{prompt_for_choice, user_question},
     project_variables::StringEntry,
 };
+use crate::id::ClusterSeed;
 use crate::util::{
     format_output, Output, OutputKind, Result, DEFAULT_LATTICE_PREFIX, DEFAULT_NATS_HOST,
     DEFAULT_NATS_PORT, DEFAULT_NATS_TIMEOUT,
@@ -37,9 +38,9 @@ impl CtxCli {
     }
 }
 
-pub(crate) async fn handle_command(ctxcmd: CtxCommand) -> Result<String> {
+pub(crate) async fn handle_command(ctx_cmd: CtxCommand) -> Result<String> {
     use CtxCommand::*;
-    match ctxcmd {
+    match ctx_cmd {
         List(cmd) => handle_list(cmd),
         Default(cmd) => handle_default(cmd),
         Edit(cmd) => handle_edit(cmd),
@@ -457,7 +458,7 @@ fn prompt_for_context() -> Result<WashContext> {
         &Some("".to_string()),
     ) {
         Ok(s) if s.is_empty() => None,
-        Ok(s) => Some(s),
+        Ok(s) => Some(s.parse::<ClusterSeed>()?),
         _ => None,
     };
     let ctl_host = user_question(
@@ -571,7 +572,7 @@ mod test {
         let new = CtxCli::from_iter_safe(&[
             "ctx",
             "new",
-            "myname",
+            "my_name",
             "--interactive",
             "--output",
             "json",
@@ -584,7 +585,7 @@ mod test {
                 assert_eq!(cmd.directory.unwrap(), PathBuf::from("./contexts"));
                 assert!(cmd.interactive);
                 assert_eq!(cmd.output.kind, OutputKind::Json);
-                assert_eq!(cmd.name.unwrap(), "myname");
+                assert_eq!(cmd.name.unwrap(), "my_name");
             }
             _ => panic!("ctx constructed incorrect command"),
         }
@@ -592,7 +593,7 @@ mod test {
         let edit = CtxCli::from_iter_safe(&[
             "ctx",
             "edit",
-            "mycontext",
+            "my_context",
             "--editor",
             "vim",
             "--directory",
@@ -603,7 +604,7 @@ mod test {
             CtxCommand::Edit(cmd) => {
                 assert_eq!(cmd.directory.unwrap(), PathBuf::from("./contexts"));
                 assert_eq!(cmd.editor, "vim");
-                assert_eq!(cmd.name.unwrap(), "mycontext");
+                assert_eq!(cmd.name.unwrap(), "my_context");
             }
             _ => panic!("ctx constructed incorrect command"),
         }
@@ -611,7 +612,7 @@ mod test {
         let del = CtxCli::from_iter_safe(&[
             "ctx",
             "del",
-            "mycontext",
+            "my_context",
             "--output",
             "text",
             "--directory",
@@ -622,7 +623,7 @@ mod test {
             CtxCommand::Del(cmd) => {
                 assert_eq!(cmd.directory.unwrap(), PathBuf::from("./contexts"));
                 assert_eq!(cmd.output.kind, OutputKind::Text);
-                assert_eq!(cmd.name.unwrap(), "mycontext");
+                assert_eq!(cmd.name.unwrap(), "my_context");
             }
             _ => panic!("ctx constructed incorrect command"),
         }
