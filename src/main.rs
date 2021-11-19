@@ -8,8 +8,7 @@ use keys::KeysCli;
 use par::ParCli;
 use reg::RegCli;
 use smithy::{GenerateCli, LintCli, ValidateCli};
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
+use structopt::{clap::AppSettings, StructOpt};
 
 mod call;
 mod claims;
