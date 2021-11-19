@@ -1,17 +1,16 @@
-use crate::ctx::{context_dir, get_default_context, load_context};
-use crate::id::ClusterSeed;
-use crate::util::Result;
-use crate::util::{
-    convert_rpc_error, extract_arg_value, format_output, json_str_to_msgpack_bytes,
-    msgpack_to_json_val, nats_client_from_opts, Output, OutputKind, DEFAULT_LATTICE_PREFIX,
-    DEFAULT_NATS_HOST, DEFAULT_NATS_PORT, DEFAULT_NATS_TIMEOUT,
+use crate::{
+    ctx::{context_dir, get_default_context, load_context},
+    id::ClusterSeed,
+    util::{
+        convert_rpc_error, extract_arg_value, format_output, json_str_to_msgpack_bytes,
+        msgpack_to_json_val, nats_client_from_opts, Output, OutputKind, Result,
+        DEFAULT_LATTICE_PREFIX, DEFAULT_NATS_HOST, DEFAULT_NATS_PORT, DEFAULT_NATS_TIMEOUT,
+    },
 };
 use log::{debug, error};
 use serde_json::json;
-use std::path::PathBuf;
-use std::time::Duration;
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
+use std::{path::PathBuf, time::Duration};
+use structopt::{clap::AppSettings, StructOpt};
 use wasmbus_rpc::{core::WasmCloudEntity, Message, RpcClient};
 use wasmcloud_test_util::testing::TestResults;
 

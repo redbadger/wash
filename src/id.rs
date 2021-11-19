@@ -57,17 +57,17 @@ fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseErro
         return Err(IdParseError::WrongLength(count));
     }
 
-    let (prefix, len) = if is_seed {
-        (format!("S{}", prefix), 2)
+    let prefix = if is_seed {
+        format!("S{}", prefix)
     } else {
-        (prefix.to_string(), 1)
+        prefix.to_string()
     };
 
     if value.starts_with(&prefix) {
         Ok(value.to_string())
     } else {
         Err(IdParseError::WrongKeyType {
-            found: value.chars().take(len).collect(),
+            found: value.chars().take(prefix.chars().count()).collect(),
             expected: prefix,
         })
     }

@@ -1,6 +1,8 @@
 extern crate wasmcloud_control_interface;
-use crate::id::{ModuleId, ServiceId};
-use crate::util::{format_optional, format_output, OutputKind};
+use crate::{
+    id::{ModuleId, ServiceId},
+    util::{format_optional, format_output, OutputKind},
+};
 use serde_json::json;
 use term_table::{row::Row, table_cell::*, Table};
 use wasmcloud_control_interface::*;

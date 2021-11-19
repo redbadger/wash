@@ -1,20 +1,23 @@
-use crate::generate::{
-    interactive::{prompt_for_choice, user_question},
-    project_variables::StringEntry,
-};
-use crate::id::ClusterSeed;
-use crate::util::{
-    format_output, Output, OutputKind, Result, DEFAULT_LATTICE_PREFIX, DEFAULT_NATS_HOST,
-    DEFAULT_NATS_PORT, DEFAULT_NATS_TIMEOUT,
+use crate::{
+    generate::{
+        interactive::{prompt_for_choice, user_question},
+        project_variables::StringEntry,
+    },
+    id::ClusterSeed,
+    util::{
+        format_output, Output, OutputKind, Result, DEFAULT_LATTICE_PREFIX, DEFAULT_NATS_HOST,
+        DEFAULT_NATS_PORT, DEFAULT_NATS_TIMEOUT,
+    },
 };
 use log::warn;
 use serde_json::json;
-use std::fs::File;
-use std::io::{BufReader, Error, ErrorKind};
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use structopt::clap::AppSettings;
-use structopt::StructOpt;
+use std::{
+    fs::File,
+    io::{BufReader, Error, ErrorKind},
+    path::{Path, PathBuf},
+    process::Command,
+};
+use structopt::{clap::AppSettings, StructOpt};
 pub mod context;
 use context::{DefaultContext, WashContext};
 
