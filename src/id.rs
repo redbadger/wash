@@ -33,7 +33,10 @@ pub struct Seed<const PREFIX: char>(String);
 // TODO: We probably need to understand what this should mean :-)
 impl<const PREFIX: char> Default for Seed<PREFIX> {
     fn default() -> Self {
-        Self("SC000000000000000000000000000000000000000000000000000000".to_string())
+        Self(format!(
+            "S{}000000000000000000000000000000000000000000000000000000",
+            PREFIX
+        ))
     }
 }
 
@@ -104,5 +107,45 @@ mod tests {
 		"module id has wrong prefix")]
     fn test_parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
         parse(value, prefix, is_seed)
+    }
+
+    #[test]
+    fn seed_default() {
+        assert_eq!(
+            ClusterSeed::default(),
+            Seed::<'C'>("SC000000000000000000000000000000000000000000000000000000".to_string())
+        );
+        assert_eq!(
+            Seed::<'M'>::default(),
+            Seed::<'M'>("SM000000000000000000000000000000000000000000000000000000".to_string())
+        );
+    }
+
+    #[test]
+    fn module_id_round_trip() {
+        let a = "M0000000000000000000000000000000000000000000000000000000";
+        let b = a.parse::<ModuleId>().unwrap();
+        assert_eq!(a.to_string(), b.to_string());
+    }
+
+    #[test]
+    fn service_id_round_trip() {
+        let a = "V0000000000000000000000000000000000000000000000000000000";
+        let b = a.parse::<ServiceId>().unwrap();
+        assert_eq!(a.to_string(), b.to_string());
+    }
+
+    #[test]
+    fn server_id_round_trip() {
+        let a = "N0000000000000000000000000000000000000000000000000000000";
+        let b = a.parse::<ServerId>().unwrap();
+        assert_eq!(a.to_string(), b.to_string());
+    }
+
+    #[test]
+    fn cluster_seed_round_trip() {
+        let a = "SC000000000000000000000000000000000000000000000000000000";
+        let b = a.parse::<ClusterSeed>().unwrap();
+        assert_eq!(a.to_string(), b.to_string());
     }
 }
