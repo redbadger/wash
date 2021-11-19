@@ -3,13 +3,18 @@ use serde::{Deserialize, Serialize};
 use std::{convert::AsRef, str::FromStr};
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq)]
 pub enum IdParseError {
     #[error(r#"found the prefix "{found}", but expected "{expected}""#)]
-    WrongKeyType { found: char, expected: char },
+    WrongKeyType { found: String, expected: String },
     #[error("found length {0}, but should be 56 chars")]
     WrongLength(usize),
 }
+
+pub type ModuleId = Id<'M'>;
+pub type ServerId = Id<'N'>;
+pub type ServiceId = Id<'V'>;
+pub type ClusterSeed = Seed<'C'>;
 
 #[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Id<const PREFIX: char>(String);
@@ -18,29 +23,9 @@ impl<const PREFIX: char> FromStr for Id<PREFIX> {
     type Err = IdParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let count = s.chars().count();
-        if count != 56 {
-            return Err(IdParseError::WrongLength(count));
-        }
-
-        if s.starts_with(PREFIX) {
-            Ok(Self(s.to_string()))
-        } else {
-            let found = s
-                .chars()
-                .next()
-                .expect("we already know it's the right length");
-            Err(IdParseError::WrongKeyType {
-                found,
-                expected: PREFIX,
-            })
-        }
+        Ok(Self(parse(s, PREFIX, false)?))
     }
 }
-
-pub type ModuleId = Id<'M'>;
-pub type ServerId = Id<'N'>;
-pub type ServiceId = Id<'V'>;
 
 #[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Seed<const PREFIX: char>(String);
@@ -62,24 +47,62 @@ impl<const PREFIX: char> FromStr for Seed<PREFIX> {
     type Err = IdParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let count = s.chars().count();
-        if count != 56 {
-            return Err(IdParseError::WrongLength(count));
-        }
-
-        if s.starts_with(&format!("S{}", PREFIX)) {
-            Ok(Self(s.to_string()))
-        } else {
-            let found = s
-                .chars()
-                .nth(1)
-                .expect("we already know it's the right length");
-            Err(IdParseError::WrongKeyType {
-                found,
-                expected: PREFIX,
-            })
-        }
+        Ok(Self(parse(s, PREFIX, true)?))
     }
 }
 
-pub type ClusterSeed = Seed<'C'>;
+fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
+    let count = value.chars().count();
+    if count != 56 {
+        return Err(IdParseError::WrongLength(count));
+    }
+
+    let (prefix, len) = if is_seed {
+        (format!("S{}", prefix), 2)
+    } else {
+        (prefix.to_string(), 1)
+    };
+
+    if value.starts_with(&prefix) {
+        Ok(value.to_string())
+    } else {
+        Err(IdParseError::WrongKeyType {
+            found: value.chars().take(len).collect(),
+            expected: prefix,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test_case::test_case;
+
+    #[test_case(
+		"SC000000000000000000000000000000000000000000000000000000", 'C', true
+		=> Ok("SC000000000000000000000000000000000000000000000000000000".to_string());
+		"valid cluster seed")]
+    #[test_case(
+		"SC000000000000000000000000000000000000000000000000", 'C', true
+		=> Err(IdParseError::WrongLength(50));
+		"short cluster seed")]
+    #[test_case(
+		"SM000000000000000000000000000000000000000000000000000000", 'C', true
+		=> Err(IdParseError::WrongKeyType{expected: "SC".to_string(), found: "SM".to_string()});
+		"cluster seed has wrong prefix")]
+    #[test_case(
+		"M0000000000000000000000000000000000000000000000000000000", 'M', false
+		=> Ok("M0000000000000000000000000000000000000000000000000000000".to_string());
+		"valid module id")]
+    #[test_case(
+		"M0000000000000000000000000000000000000000000000000", 'M', false
+		=> Err(IdParseError::WrongLength(50));
+		"short module id")]
+    #[test_case(
+		"V0000000000000000000000000000000000000000000000000000000", 'M', false
+		=> Err(IdParseError::WrongKeyType{expected: "M".to_string(), found: "V".to_string()});
+		"module id has wrong prefix")]
+    fn test_parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
+        parse(value, prefix, is_seed)
+    }
+}
