@@ -34,7 +34,7 @@ pub struct Seed<const PREFIX: char>(String);
 impl<const PREFIX: char> Default for Seed<PREFIX> {
     fn default() -> Self {
         Self(format!(
-            "S{}000000000000000000000000000000000000000000000000000000",
+            "S{}00000000000000000000000000000000000000000000000000000000",
             PREFIX
         ))
     }
@@ -55,16 +55,16 @@ impl<const PREFIX: char> FromStr for Seed<PREFIX> {
 }
 
 fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
+    let (len, prefix) = if is_seed {
+        (58, format!("S{}", prefix))
+    } else {
+        (56, prefix.to_string())
+    };
+
     let count = value.chars().count();
-    if count != 56 {
+    if count != len {
         return Err(IdParseError::WrongLength(count));
     }
-
-    let prefix = if is_seed {
-        format!("S{}", prefix)
-    } else {
-        prefix.to_string()
-    };
 
     if value.starts_with(&prefix) {
         Ok(value.to_string())
@@ -82,15 +82,15 @@ mod tests {
     use test_case::test_case;
 
     #[test_case(
-		"SC000000000000000000000000000000000000000000000000000000", 'C', true
-		=> Ok("SC000000000000000000000000000000000000000000000000000000".to_string());
+		"SC00000000000000000000000000000000000000000000000000000000", 'C', true
+		=> Ok("SC00000000000000000000000000000000000000000000000000000000".to_string());
 		"valid cluster seed")]
     #[test_case(
 		"SC000000000000000000000000000000000000000000000000", 'C', true
 		=> Err(IdParseError::WrongLength(50));
 		"short cluster seed")]
     #[test_case(
-		"SM000000000000000000000000000000000000000000000000000000", 'C', true
+		"SM00000000000000000000000000000000000000000000000000000000", 'C', true
 		=> Err(IdParseError::WrongKeyType{expected: "SC".to_string(), found: "SM".to_string()});
 		"cluster seed has wrong prefix")]
     #[test_case(
@@ -113,11 +113,11 @@ mod tests {
     fn seed_default() {
         assert_eq!(
             ClusterSeed::default(),
-            Seed::<'C'>("SC000000000000000000000000000000000000000000000000000000".to_string())
+            Seed::<'C'>("SC00000000000000000000000000000000000000000000000000000000".to_string())
         );
         assert_eq!(
             Seed::<'M'>::default(),
-            Seed::<'M'>("SM000000000000000000000000000000000000000000000000000000".to_string())
+            Seed::<'M'>("SM00000000000000000000000000000000000000000000000000000000".to_string())
         );
     }
 
@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn cluster_seed_round_trip() {
-        let a = "SC000000000000000000000000000000000000000000000000000000";
+        let a = "SC00000000000000000000000000000000000000000000000000000000";
         let b = a.parse::<ClusterSeed>().unwrap();
         assert_eq!(a.to_string(), b.to_string());
     }
