@@ -4,11 +4,11 @@ use std::{convert::AsRef, str::FromStr};
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq)]
-pub enum IdParseError {
+pub enum ParseError {
     #[error(r#"found the prefix "{found}", but expected "{expected}""#)]
-    WrongKeyType { found: String, expected: String },
-    #[error("found length {0}, but should be 56 chars")]
-    WrongLength(usize),
+    InvalidKeyType { found: String, expected: String },
+    #[error("the key should be {expected} characters, but was {found} characters")]
+    InvalidLength { found: usize, expected: usize },
 }
 
 pub type ModuleId = Id<'M'>;
@@ -20,7 +20,7 @@ pub type ClusterSeed = Seed<'C'>;
 pub struct Id<const PREFIX: char>(String);
 
 impl<const PREFIX: char> FromStr for Id<PREFIX> {
-    type Err = IdParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(parse(s, PREFIX, false)?))
@@ -47,14 +47,14 @@ impl<const PREFIX: char> AsRef<str> for Seed<PREFIX> {
 }
 
 impl<const PREFIX: char> FromStr for Seed<PREFIX> {
-    type Err = IdParseError;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self(parse(s, PREFIX, true)?))
     }
 }
 
-fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
+fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, ParseError> {
     let (len, prefix) = if is_seed {
         (58, format!("S{}", prefix))
     } else {
@@ -63,13 +63,16 @@ fn parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseErro
 
     let count = value.chars().count();
     if count != len {
-        return Err(IdParseError::WrongLength(count));
+        return Err(ParseError::InvalidLength {
+            found: count,
+            expected: len,
+        });
     }
 
     if value.starts_with(&prefix) {
         Ok(value.to_string())
     } else {
-        Err(IdParseError::WrongKeyType {
+        Err(ParseError::InvalidKeyType {
             found: value.chars().take(prefix.chars().count()).collect(),
             expected: prefix,
         })
@@ -87,11 +90,11 @@ mod tests {
 		"valid cluster seed")]
     #[test_case(
 		"SC000000000000000000000000000000000000000000000000", 'C', true
-		=> Err(IdParseError::WrongLength(50));
+		=> Err(ParseError::InvalidLength { found: 50, expected: 58 });
 		"short cluster seed")]
     #[test_case(
 		"SM00000000000000000000000000000000000000000000000000000000", 'C', true
-		=> Err(IdParseError::WrongKeyType{expected: "SC".to_string(), found: "SM".to_string()});
+		=> Err(ParseError::InvalidKeyType { expected: "SC".to_string(), found: "SM".to_string() });
 		"cluster seed has wrong prefix")]
     #[test_case(
 		"M0000000000000000000000000000000000000000000000000000000", 'M', false
@@ -99,13 +102,13 @@ mod tests {
 		"valid module id")]
     #[test_case(
 		"M0000000000000000000000000000000000000000000000000", 'M', false
-		=> Err(IdParseError::WrongLength(50));
+		=> Err(ParseError::InvalidLength { found: 50, expected: 56 });
 		"short module id")]
     #[test_case(
 		"V0000000000000000000000000000000000000000000000000000000", 'M', false
-		=> Err(IdParseError::WrongKeyType{expected: "M".to_string(), found: "V".to_string()});
+		=> Err(ParseError::InvalidKeyType { expected: "M".to_string(), found: "V".to_string() });
 		"module id has wrong prefix")]
-    fn test_parse(value: &str, prefix: char, is_seed: bool) -> Result<String, IdParseError> {
+    fn test_parse(value: &str, prefix: char, is_seed: bool) -> Result<String, ParseError> {
         parse(value, prefix, is_seed)
     }
 
