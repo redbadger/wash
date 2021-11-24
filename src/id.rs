@@ -30,13 +30,16 @@ impl<const PREFIX: char> FromStr for Id<PREFIX> {
 #[derive(Clone, Debug, Display, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Seed<const PREFIX: char>(String);
 
-// TODO: We probably need to understand what this should mean :-)
+/// provides a parseable but unused, and therefore probably not useful, seed
 impl<const PREFIX: char> Default for Seed<PREFIX> {
     fn default() -> Self {
-        Self(format!(
-            "S{}00000000000000000000000000000000000000000000000000000000",
-            PREFIX
-        ))
+        Self(
+            match PREFIX {
+                'C' => "SCAMSVN4M2NZ65RWGYE42BZZ7VYEFEAAHGLIY7R4W7CRHORSMXTDJRKXLY",
+                _ => Default::default(),
+            }
+            .to_string(),
+        )
     }
 }
 
@@ -116,12 +119,11 @@ mod tests {
     fn seed_default() {
         assert_eq!(
             ClusterSeed::default(),
-            Seed::<'C'>("SC00000000000000000000000000000000000000000000000000000000".to_string())
+            "SCAMSVN4M2NZ65RWGYE42BZZ7VYEFEAAHGLIY7R4W7CRHORSMXTDJRKXLY"
+                .parse()
+                .unwrap()
         );
-        assert_eq!(
-            Seed::<'M'>::default(),
-            Seed::<'M'>("SM00000000000000000000000000000000000000000000000000000000".to_string())
-        );
+        assert_eq!(Seed::<'M'>::default(), Seed::<'M'>("".to_string()));
     }
 
     #[test]

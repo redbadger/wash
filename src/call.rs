@@ -343,7 +343,7 @@ mod test {
             "--context",
             "~/.wash/contexts/default.json",
             "--cluster-seed",
-            "SC00000000000000000000000000000000000000000000000000000000",
+            "SCAMSVN4M2NZ65RWGYE42BZZ7VYEFEAAHGLIY7R4W7CRHORSMXTDJRKXLY",
             "--lattice-prefix",
             LATTICE_PREFIX,
             "--rpc-host",
