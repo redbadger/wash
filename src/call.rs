@@ -315,7 +315,7 @@ async fn rpc_client_from_opts(
 #[cfg(test)]
 mod test {
     use super::{CallCli, CallCommand};
-    use crate::{id::ClusterSeed, util::Result};
+    use crate::util::Result;
     use std::path::PathBuf;
     use structopt::StructOpt;
 
@@ -380,7 +380,12 @@ mod test {
                 assert_eq!(output.kind, crate::util::OutputKind::Json);
                 assert_eq!(data, Some(PathBuf::from(DATA_FNAME)));
                 assert_eq!(save, Some(PathBuf::from(SAVE_FNAME)));
-                assert_eq!(cluster_seed.unwrap(), ClusterSeed::default());
+                assert_eq!(
+                    cluster_seed.unwrap(),
+                    "SCAMSVN4M2NZ65RWGYE42BZZ7VYEFEAAHGLIY7R4W7CRHORSMXTDJRKXLY"
+                        .parse()
+                        .unwrap()
+                );
                 assert!(test);
                 assert_eq!(bin, '2');
                 assert_eq!(actor_id, ACTOR_ID);
